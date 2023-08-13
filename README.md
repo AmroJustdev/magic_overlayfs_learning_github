@@ -108,29 +108,26 @@ fi
 
 - Remove `/data/adb/overlay` and reinstall module
 
-## Without Magisk
-
-- Simple configuration to test:
+## Integrate without being a Magisk module
 
 ```bash
-# - Create a writeable directory in ext4 (f2fs) /data
-# which will be used for upperdir
-# - On some Kernel, f2fs is not supported by OverlayFS
-# and cannot be used directly
-WRITEABLE=/data/overlayfs
+# Extract overlayfs_system in module zip and push overlayfs_system binary to /data/adb
+cp -af ./overlayfs_system /data/adb
+cd /data/adb && chmod +x ./overlayfs_system
 
+# - Prepare writeable directory
+WRITEABLE=/data/overlayfs
 mkdir -p "$WRITEABLE"
 
-# - Export list of modules if you want to load mounts by overlayfs
-# - If you have /vendor /product /system_ext as seperate partitons
-# - Please move it out of "system" folder, overwise **BOOM**
-export OVERLAYLIST=/data/adb/modules/module_a:/data/adb/modules/module_b
-
-# - If there is Magisk, export this in post-fs-data.sh (before magic mount):
-export MAGISKTMP="$(magisk --path)"
+# --- create ext4 image and mount it to WRITEABLE --
 
 # - Load overlayfs
+unset MAGISKTMP
+export OVERLAY_MODE=0
 ./overlayfs_system "$WRITEABLE"
+
+# remount all overlayfs to RW
+./overlayfs_system --remount-rw
 ```
 
 ## Source code
